@@ -15,6 +15,7 @@ The folder `demo_page/` contains a demo page with all fundamental functionalitie
 
 ```bash
 cd demo_page
+npm install
 npm run dev
 ```
 This will create a server running at https://localhost:8885. Visit this site and use WeInfer.
