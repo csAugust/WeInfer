@@ -1,0 +1,22 @@
+{
+  "name": "get-started",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "rm -rf dist .parcel-cache && parcel src/get_started.html  --port 8885 --https",
+    "build": "rm -rf lib .parcel-cache && parcel build src/get_started.html --dist-dir lib"
+  },
+  "devDependencies": {
+    "buffer": "^5.7.1",
+    "parcel": "^2.8.3",
+    "process": "^0.11.10",
+    "tslib": "^2.3.1",
+    "typescript": "^4.9.5",
+    "url": "^0.11.3"
+  },
+  "dependencies": {
+    "@mlc-ai/web-llm-gpu-sample": "file:../built_lib/web-llm-origin/lib-gpu-sample",
+    "@mlc-ai/web-llm-ours-1x": "file:../built_lib/web-llm-ours/lib-all-1x",
+    "@mlc-ai/web-llm-ours-nx-gpu-sample-reb": "file:../built_lib/web-llm-ours/lib-all-nx-gpu-sample-reb"
+  }
+}

@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+<style>
+  html {
+    margin: 10%;
+    padding: 0 25%;
+  }
+
+  .hidden {
+    display: block;
+  }
+
+  .gray {
+    color: gray;
+  }
+
+  .init-label-color {
+    color: burlywood;
+  }
+</style>
+
+<script>
+  webLLMGlobal = {};
+</script>
+
+<body>
+  <h2>WebLLM Test Page</h2>
+  <h3 class="hidden">Config</h3>
+  <form id="myForm" class="hidden">
+    <input type="radio" id="option1" name="options" value="1">
+    <label for="option1">WebLLM Original</label><br>
+    <input type="radio" id="option2" name="options" value="2">
+    <label for="option2">WebLLM +Cache</label><br>
+    <input type="radio" id="option3" name="options" value="3">
+    <label for="option3">WebLLM +Cache+xInterval</label><br>
+    value of x:<input id="x_value" type="text">
+  </form>
+  <br>
+  <h3 for="model-select">Select model</h3>
+  <select id="model-select">
+    <option value="SmolLM-135M-Instruct-q0f32-MLC">[0.3GB]SmolLM-135M-Instruct-q0f32-MLC</option>
+    <option value="Qwen2-1.5B-Instruct-q4f32_1-MLC">[1.4GB]Qwen2-1.5B-Instruct-q4f32_1-MLC</option>
+  </select>
+  <button id="load">load</button>
+  <div></div>
+  <i class="gray">You should reload model every once you change your selection of model / config.</i>
+  <div></div>
+  <label id="script-label"> </label>
+  <label id="script4all-label"> </label>
+  <div></div>
+  <label id="init-label" class="init-label-color">Loading...</label>
+
+  <h3>Max number of new tokens to be generated</h3>
+  <input id="maxNew" type="text">
+
+  <h3>Input your prompt</h3>
+  <textarea id="input" type="textarea" rows="8" cols="48"></textarea>
+  <div></div>
+  <button id="submit">Submit</button>
+
+  <h3>Response</h3>
+  <label id="generate-label"> </label>
+  <br />
+  <br />
+  <br />
+  <label id="stats-label"> </label>
+
+  <script type="module" src="./get_started.ts"></script>
+</body>
+
+</html>
