@@ -23,9 +23,10 @@ This will create a server running at https://localhost:8885. Visit this site and
 WeInfer can load model weights from URL linked to huggingface or a local model server. You can change this by modifying `appConfig.model_list` and `modelServerUrl` in the file `demo_page/src/get_started.ts`.
 
 
-Defaultly WeInfer utilizes model server in the folder `model_server/`. Start the model server at https://localhost:8886 by:
+Defaultly WeInfer utilizes model server in the folder `model_server/`. Put your certificate `server.crt` and private key `key.pem` in `model_server/`, and then start the model server at https://localhost:8886 by:
 ```bash
 cd model_server
+npm install
 npm run dev
 ```
 

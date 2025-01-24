@@ -1,6 +1,6 @@
-import * as webllm_origin from "@mlc-ai/lib-gpu-sample";
-import * as webllm_cache from "@mlc-ai/lib-all-1x";
-import * as webllm from "@mlc-ai/lib-all-nx-gpu-sample-reb";
+import * as webllm_origin from "@mlc-ai/web-llm-gpu-sample";
+import * as webllm_cache from "@mlc-ai/web-llm-ours-1x";
+import * as webllm from "@mlc-ai/web-llm-ours-nx-gpu-sample-reb";
 
 // function sendResultToServer(result: any, fileName: string) {
 //   let xhr = new XMLHttpRequest();
