@@ -40,7 +40,7 @@ class Engine {
   public isModelLoaded: boolean = false;
   public modelVersion = "v0_2_48";
   public modelLibURLPrefix = "https://raw.githubusercontent.com/mlc-ai/binary-mlc-llm-libs/main/web-llm-models/";
-  public modelServerUrl = "162.105.175.5:8886"
+  public modelServerUrl = "Your server URL"
 
   constructor() {
     this.appConfig = webllm.prebuiltAppConfig;
