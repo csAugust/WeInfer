@@ -77,7 +77,8 @@ npm run dev
 
 Download the model weights by:
 ```bash
-cd model_server/src/resolve
+cd model_server/src/
+mkdir resolve
 git clone https://huggingface.co/mlc-ai/SmolLM2-135M-Instruct-q0f32-MLC
 ```
 **More Models**
