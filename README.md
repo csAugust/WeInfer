@@ -21,7 +21,7 @@ As this prototype of WeInfer is built on the top of WebLLM, the approach to buil
 
 **Setup**
 
-The required environment for building WeInfer are the same with building WebLLM runtime, include NPM, emscripten, etc. Please follow the instructions in https://github.com/mlc-ai/web-llm?tab=readme-ov-file#build-webllm-package-from-source to setup the environment.
+The required environment for building WeInfer is the same with building WebLLM runtime, including NPM, emscripten, etc. Please follow the instructions in https://github.com/mlc-ai/web-llm?tab=readme-ov-file#build-webllm-package-from-source to setup the environment.
 
 **Build**
 
