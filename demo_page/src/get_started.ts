@@ -1,4 +1,4 @@
-import * as webllm_origin from "@mlc-ai/web-llm-gpu-sample";
+import * as webllm_origin from "@mlc-ai/web-llm";
 import * as webllm_cache from "@mlc-ai/web-llm-ours-1x";
 import * as webllm from "@mlc-ai/web-llm-ours-nx-gpu-sample-reb";
 
@@ -32,24 +32,27 @@ class Engine {
     setLabel("init-label", report.text);
   };
   public appConfig: webllm.AppConfig;
+  public originAppConfig: webllm_origin.AppConfig;
   public engine: webllm.MLCEngineInterface;
+  public originEngine: webllm_origin.MLCEngine;
 
   public selectedLib: number = 3;
   public x: number = 4;
   public selectedModel: string = "SmolLM-135M-Instruct-q0f32-MLC";
+  public originModel: string = "SmolLM2-135M-Instruct-q0f32-MLC";
   public isModelLoaded: boolean = false;
   public modelVersion = "v0_2_48";
   public modelLibURLPrefix = "https://raw.githubusercontent.com/mlc-ai/binary-mlc-llm-libs/main/web-llm-models/";
-  public modelServerUrl = "Your server URL"
+  public modelServerUrl = "localhost:8886"
 
   constructor() {
     this.appConfig = webllm.prebuiltAppConfig;
     this.appConfig.model_list = [
       {
         // model: "https://huggingface.co/mlc-ai/Qwen2-1.5B-Instruct-q4f32_1-MLC",
-        model: `https://${this.modelServerUrl}/resolve/Qwen2-1.5B-Instruct-q4f32_1-MLC/`,
+        model: `http://${this.modelServerUrl}/resolve/Qwen2-1.5B-Instruct-q4f32_1-MLC/`,
         model_id: "Qwen2-1.5B-Instruct-q4f32_1-MLC",
-        model_lib: `https://${this.modelServerUrl}/wasm_libs/Qwen2-1.5B-Instruct-q4f32_1-ctx4k_cs1k-webgpu.wasm`,
+        model_lib: `http://${this.modelServerUrl}/wasm_libs/Qwen2-1.5B-Instruct-q4f32_1-ctx4k_cs1k-webgpu.wasm`,
         // model_lib:
         //   this.modelLibURLPrefix +
         //   this.modelVersion +
@@ -61,9 +64,9 @@ class Engine {
         },
       },
       {
-        model: `https://${this.modelServerUrl}/resolve/SmolLM-135M-Instruct-q0f32-MLC`,
+        model: `http://${this.modelServerUrl}/resolve/SmolLM-135M-Instruct-q0f32-MLC`,
         model_id: "SmolLM-135M-Instruct-q0f32-MLC",
-        model_lib: `https://${this.modelServerUrl}/wasm_libs/SmolLM-135M-Instruct-q0f32-ctx2k_cs1k-webgpu.wasm`,
+        model_lib: `http://${this.modelServerUrl}/wasm_libs/SmolLM-135M-Instruct-q0f32-ctx2k_cs1k-webgpu.wasm`,
         vram_required_MB: 629.38,
         low_resource_required: true,
         overrides: {
@@ -72,12 +75,20 @@ class Engine {
       },
     ]
     this.appConfig.useIndexedDBCache = true;
+
+    // Configure origin (latest web-llm) to use SmolLM2 from prebuilt config (HuggingFace)
+    this.originAppConfig = webllm_origin.prebuiltAppConfig;
+    this.originAppConfig.useIndexedDBCache = true;
+
     this.loadEngine(this.selectedLib);
   }
 
   loadEngine(selectedValue: number) {
     if (this.engine) {
       this.engine.unload();
+    }
+    if (this.originEngine) {
+      this.originEngine.unload();
     }
     this.selectedLib = selectedValue;
     console.log(selectedValue);
@@ -97,7 +108,9 @@ class Engine {
 
   public updateX(x: number) {
     this.x = x;
-    this.engine!.getPipeline().reconstructSampler(x);
+    if (this.selectedLib !== 1) {
+      this.engine!.getPipeline().reconstructSampler(x);
+    }
   }
 
   private load_ours() {
@@ -115,16 +128,22 @@ class Engine {
   }
 
   private load_origin() {
-    this.engine = new webllm_origin.MLCEngine({
-      appConfig: this.appConfig, // if do not specify, we use webllm.prebuiltAppConfig
+    this.originEngine = new webllm_origin.MLCEngine({
+      appConfig: this.originAppConfig,
       initProgressCallback: this.initProgressCallback,
     });
   }
 
   async loadModel(model: string) {
-    this.engine.unload();
-    this.selectedModel = model;
-    await this.engine.reload(this.selectedModel);
+    if (this.selectedLib === 1) {
+      await this.originEngine.unload();
+      this.selectedModel = this.originModel;
+      await this.originEngine.reload(this.originModel);
+    } else {
+      this.engine.unload();
+      this.selectedModel = model;
+      await this.engine.reload(this.selectedModel);
+    }
     this.isModelLoaded = true;
   }
 
@@ -137,6 +156,67 @@ class Engine {
       return null;
     }
 
+    if (this.selectedLib === 1) {
+      return this.runOrigin(input, max_new_tokens);
+    } else {
+      return this.runWeInfer(input, max_new_tokens);
+    }
+  }
+
+  private async runOrigin(input: string, max_new_tokens: number) {
+    let timeRecord: any[] = [];
+    let replyTokenCnt: number = 0;
+    let fullReply = "";
+
+    const genConfig = {
+      top_p: 1.0,
+      temperature: 0,
+      presence_penalty: 0,
+      frequency_penalty: 0,
+      max_tokens: max_new_tokens,
+    };
+
+    const chunks = await this.originEngine.chat.completions.create({
+      messages: [{ role: "user", content: input }],
+      stream: true,
+      stream_options: { include_usage: true },
+      ...genConfig,
+    });
+
+    let lastStart = performance.now();
+    let isFirstChunk = true;
+
+    for await (const chunk of chunks) {
+      const delta = chunk.choices?.[0]?.delta?.content;
+      if (delta) {
+        const now = performance.now();
+        replyTokenCnt += 1;
+        const tdelta = now - lastStart;
+
+        if (isFirstChunk) {
+          // First token includes prefill time
+          timeRecord.push({ step: 1, message: delta, time: tdelta });
+          isFirstChunk = false;
+        } else {
+          timeRecord.push({ step: replyTokenCnt, message: delta, time: tdelta });
+        }
+        console.log(`Time for #token ${replyTokenCnt}: ${tdelta} ms`);
+        lastStart = now;
+        fullReply += delta;
+        setLabel("generate-label", fullReply);
+      }
+    }
+
+    console.log(fullReply);
+    return {
+      reply: fullReply,
+      replyTokenCnt,
+      timeRecord,
+      genConfig,
+    };
+  }
+
+  private async runWeInfer(input: string, max_new_tokens: number) {
     let timeRecord: any[] = [];
     let lastStart: number = -1;
     let replyTokenCnt: number = 0;
@@ -222,7 +302,7 @@ async function main() {
           model: engine.selectedModel,
           lib: engine.selectedLib,
           x: engine.x,
-          gpuLabel: engine.engine?.gpuLabel ?? 'Unknown',
+          gpuLabel: engine.selectedLib === 1 ? 'Unknown' : (engine.engine?.gpuLabel ?? 'Unknown'),
           genConfig: result.genConfig,
         },
         TimeRecord: result.timeRecord,

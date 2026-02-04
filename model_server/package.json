@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "http-server ./src --cors -S -C server.crt -p 8886"
+    "dev": "http-server ./src --cors -p 8886"
   },
   "author": "",
   "license": "ISC",
